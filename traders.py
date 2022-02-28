@@ -1,9 +1,14 @@
 from tkinter import *
 from tkinter import ttk
 
+from datetime import datetime, timezone
+
 import json
 import os.path
 import requests
+
+import locale
+locale.setlocale(locale.LC_ALL, '')  # Use '' for auto, or force e.g. to 'en_US.UTF-8'
 
 TRADER_FILE = 'traders.json'
 
@@ -13,6 +18,19 @@ CURRENT_LEADERBOARD = 'https://api.spacetraders.io/game/leaderboard/net-worth'
 MY_LOANS = 'https://api.spacetraders.io/my/loans'
 MY_SHIPS = 'https://api.spacetraders.io/my/ships'
 MY_STRUCTURES = 'https://api.spacetraders.io/my/structures'
+
+UTC_FORMAT = '%Y-%m-%dT%H:%M:%S.%f%z'
+DISPLAY_FORMAT = ' %B, %Y'
+
+
+def parse_datetime(dt):
+    return datetime.strptime(dt, UTC_FORMAT)
+
+
+def format_datetime(dt_text):
+    dt = parse_datetime(dt_text)
+    d = dt.day
+    return str(d) + ('th' if 11<=d<=13 else {1:'st',2:'nd',3:'rd'}.get(d%10, 'th')) + datetime.strftime(dt, DISPLAY_FORMAT)
 
 
 def load_trader_logins():
@@ -47,7 +65,10 @@ def show_trader_summary(json_result):
     
     trader_login.set(json_result['user']['username'])
     trader_token.set(json_result['token'])
-    
+
+    user_joined.set(format_datetime(json_result['user']['joinedAt']))
+    user_worth.set(f"{json_result['user']['credits']:n}")
+
     tabs.select(1)
 
 
@@ -58,6 +79,7 @@ def register_trader():
         response = requests.post(claim_url)
         if response.status_code < 400:
             result = response.json()
+            result['user']['joinedAt'] = datetime.now(timezone.utc).isoformat()
             store_trader_login(result)
             show_trader_summary(result)
             trader_name.set('')
@@ -117,6 +139,14 @@ def refresh_tabs(event):
 
 def refresh_user_summary(*args):
     try:
+        response = requests.get(MY_ACCOUNT, params={'token': trader_token.get()})
+        if response.status_code == 200:
+            result = response.json()
+            # print(result)
+
+            user_joined.set(format_datetime(result['user']['joinedAt']))
+            user_worth.set(f"{result['user']['credits']:n}")
+
         response = requests.get(MY_LOANS, params={'token': trader_token.get()})
         if response.status_code == 200:
             result = response.json()
@@ -127,7 +157,7 @@ def refresh_user_summary(*args):
             loan_view.heading('#3', text='Due')
             loan_view.heading('#4', text='Amount Owing')
             for row in result['loans']:
-                loan_view.insert('', 'end', text='loan_values', values=(row['type'], row['status'], row['due'], row['repaymentAmount']))
+                loan_view.insert('', 'end', text='loan_values', values=(row['type'], row['status'], format_datetime(row['due']), f"{row['repaymentAmount']:n}"))
 
         else:
             print('Failed:', response.status_code, response.reason, response.text)
@@ -178,7 +208,7 @@ def refresh_leaderboard(*args):
             leaderboard_view.heading('#2', text='Trader')
             leaderboard_view.heading('#3', text='Net Worth')
             for row in result['netWorth']:
-                leaderboard_view.insert('', 'end', text='values', values=(row['rank'], row['username'], row['netWorth']))
+                leaderboard_view.insert('', 'end', text='values', values=(row['rank'], row['username'], f"{row['netWorth']:n}"))
 
         else:
             print('Failed:', response.status_code, response.reason, response.text)
@@ -271,8 +301,16 @@ user.rowconfigure(0, weight=1)
 #
 
 user_summary = ttk.LabelFrame(summary, text='Trader', relief='groove', padding=5)
-ttk.Label(user_summary, textvariable=trader_login, anchor=CENTER).grid(sticky=NSEW)
-ttk.Button(user_summary, text='Logout', command=logout_trader).grid(row=1, column=0, sticky=EW)
+
+user_joined = StringVar()
+user_worth = StringVar()
+
+ttk.Label(user_summary, textvariable=trader_login, anchor=CENTER).grid(columnspan=2, sticky=EW)
+ttk.Label(user_summary, text='Joined on:').grid(row=1, column=0, sticky=W)
+ttk.Label(user_summary, textvariable=user_joined, anchor=CENTER).grid(row=1, column=1, sticky=EW)
+ttk.Label(user_summary, text='Credits:').grid(row=2, column=0, sticky=W)
+ttk.Label(user_summary, textvariable=user_worth, anchor=CENTER).grid(row=2, column=1, sticky=EW)
+ttk.Button(user_summary, text='Logout', command=logout_trader).grid(row=3, column=0, columnspan=2, sticky=EW)
 
 user_summary.columnconfigure(0, weight=1)
 

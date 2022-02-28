@@ -37,7 +37,7 @@ def generate_login_combobox():
     known_traders = load_trader_logins()
     trader_list = sorted(known_traders.keys(), key=str.casefold)
 
-    return trader_list
+    id_login['values'] = trader_list
 
 
 def show_trader_summary(json_result):
@@ -59,6 +59,8 @@ def register_trader():
         if response.status_code < 400:
             result = response.json()
             store_trader_login(result)
+            show_trader_summary(result)
+            trader_name.set('')
         else:
             print('Failed:', response.status_code, response.reason, response.text)
 
@@ -250,7 +252,7 @@ login.grid(row=0, column=2, sticky=NSEW)
 trader_login = StringVar()
 trader_token = StringVar() # going to use this to remember the currently logged in trader
 ttk.Label(login, text='Choose the trader to play as\nor paste an existing id').grid(sticky=EW)
-id_login = ttk.Combobox(login, textvariable=trader_login, values=generate_login_combobox())
+id_login = ttk.Combobox(login, textvariable=trader_login, postcommand=generate_login_combobox)
 id_login.grid(row=1, column=0, sticky=EW)
 ttk.Button(login, text='Login trader', command=login_trader).grid(row=2, column=0, columnspan=2, sticky=EW)
 

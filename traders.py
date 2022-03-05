@@ -81,7 +81,7 @@ tabs.tab(2, state=tk.DISABLED)
 login.create_registration_login_tab(login_tab, login_trader)
 summary.create_summary_tab(
     summary_tab,
-    login.widgets["trader_name"],
+    login.widgets["trader_login"],
     login.widgets["trader_token"],
     logout_trader,
 )

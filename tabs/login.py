@@ -86,12 +86,13 @@ def login_trader():
             result["token"] = widgets[
                 "trader_token"
             ].get()  # used to hold the token for later
-            success_method(result)
-            # print(result)
 
             # -1, so now store the trader name / token for future runs
             if widgets["id_login"].current() == -1:
                 store_trader_login(result)
+
+            success_method(result)
+            # print(result)
 
         else:
             print("Failed:", response.status_code, response.reason, response.text)

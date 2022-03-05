@@ -23,6 +23,8 @@ MY_STRUCTURES = "https://api.spacetraders.io/my/structures"
 UTC_FORMAT = "%Y-%m-%dT%H:%M:%S.%f%z"
 DISPLAY_FORMAT = " %B, %Y"
 
+proxy_workaround = {"proxies": {"https": "http://127.0.0.1:8080"}, "verify": False}
+
 
 def parse_datetime(dt):
     return datetime.strptime(dt, UTC_FORMAT)
@@ -80,9 +82,8 @@ def show_trader_summary(json_result):
 def register_trader():
     username = trader_name.get()  # noqa: F841
     claim_url = eval(CLAIM_USER)  # username from above used here
-
     try:
-        response = requests.post(claim_url)
+        response = requests.post(claim_url, **proxy_workaround)
         if response.status_code < 400:
             result = response.json()
             result["user"]["joinedAt"] = datetime.now(timezone.utc).isoformat()
@@ -99,13 +100,15 @@ def register_trader():
 def login_trader():
     trader_token.set(trader_login.get())
 
-    # -1 -> user entered a new token
+    # -1 -> user entered a new token, so there won't be a name selected
     if id_login.current() != -1:
         known_traders = load_trader_logins()
         trader_token.set(known_traders[trader_login.get()])
 
     try:
-        response = requests.get(MY_ACCOUNT, params={"token": trader_token.get()})
+        response = requests.get(
+            MY_ACCOUNT, params={"token": trader_token.get()}, **proxy_workaround
+        )
         if response.status_code == 200:
             result = response.json()
             result["token"] = trader_token.get()  # used to hold the token for later
@@ -145,7 +148,9 @@ def refresh_tabs(event):
 
 def refresh_user_summary(*args):
     try:
-        response = requests.get(MY_ACCOUNT, params={"token": trader_token.get()})
+        response = requests.get(
+            MY_ACCOUNT, params={"token": trader_token.get()}, **proxy_workaround
+        )
         if response.status_code == 200:
             result = response.json()
             # print(result)
@@ -153,7 +158,9 @@ def refresh_user_summary(*args):
             user_joined.set(format_datetime(result["user"]["joinedAt"]))
             user_worth.set(f"{result['user']['credits']:n}")
 
-        response = requests.get(MY_LOANS, params={"token": trader_token.get()})
+        response = requests.get(
+            MY_LOANS, params={"token": trader_token.get()}, **proxy_workaround
+        )
         if response.status_code == 200:
             result = response.json()
             # print(result)
@@ -178,7 +185,9 @@ def refresh_user_summary(*args):
         else:
             print("Failed:", response.status_code, response.reason, response.text)
 
-        response = requests.get(MY_SHIPS, params={"token": trader_token.get()})
+        response = requests.get(
+            MY_SHIPS, params={"token": trader_token.get()}, **proxy_workaround
+        )
         if response.status_code == 200:
             result = response.json()
             # print(result)
@@ -203,7 +212,9 @@ def refresh_user_summary(*args):
         else:
             print("Failed:", response.status_code, response.reason, response.text)
 
-        response = requests.get(MY_STRUCTURES, params={"token": trader_token.get()})
+        response = requests.get(
+            MY_STRUCTURES, params={"token": trader_token.get()}, **proxy_workaround
+        )
         if response.status_code == 200:
             result = response.json()
             # print(result)
@@ -230,7 +241,9 @@ def refresh_user_summary(*args):
 def refresh_leaderboard(*args):
     try:
         response = requests.get(
-            CURRENT_LEADERBOARD, params={"token": trader_token.get()}
+            CURRENT_LEADERBOARD,
+            params={"token": trader_token.get()},
+            **proxy_workaround,
         )
         if response.status_code == 200:
             result = response.json()

@@ -3,9 +3,7 @@ from tkinter import ttk
 
 import locale
 
-import login
-import summary
-import leaderboard
+from tabs import leaderboard, login, summary
 import util
 
 locale.setlocale(locale.LC_ALL, "")  # Use '' for auto, or force e.g. to 'en_US.UTF-8'

@@ -168,3 +168,11 @@ def create_registration_login_tab(parent, login_success):
 
     parent.columnconfigure(0, weight=1)
     parent.rowconfigure(0, weight=1)
+
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    frame = ttk.Frame(root)
+    create_registration_login_tab(frame, lambda j: print(j))
+    frame.pack()
+    root.mainloop()

@@ -3,7 +3,7 @@ from tkinter import ttk
 
 import locale
 
-from tabs import leaderboard, login, summary
+from tabs import leaderboard, login, summary, market
 import util
 
 locale.setlocale(locale.LC_ALL, "")  # Use '' for auto, or force e.g. to 'en_US.UTF-8'
@@ -13,6 +13,7 @@ def login_trader(json_result):
     tabs.tab(0, state=tk.DISABLED)
     tabs.tab(1, state=tk.NORMAL)
     tabs.tab(2, state=tk.NORMAL)
+    tabs.tab(3, state=tk.NORMAL)
 
     login.widgets["trader_login"].set(json_result["user"]["username"])
     login.widgets["trader_token"].set(json_result["token"])
@@ -29,6 +30,7 @@ def logout_trader():
     tabs.tab(0, state=tk.NORMAL)
     tabs.tab(1, state=tk.DISABLED)
     tabs.tab(2, state=tk.DISABLED)
+    tabs.tab(3, state=tk.DISABLED)
 
     login.widgets["trader_login"].set("")
     login.widgets["trader_token"].set("")
@@ -43,6 +45,9 @@ def refresh_tabs(event):
 
     elif selected_index == 2:
         leaderboard.refresh_leaderboard()
+    elif selected_index == 3:
+        market.refresh_marketplace()
+        market.refresh_location(market_tab, login.widgets["trader_token"])
 
 
 ###
@@ -70,13 +75,16 @@ main.rowconfigure(0, weight=1)
 login_tab = ttk.Frame(tabs, padding="3 1 6 5")
 summary_tab = ttk.Frame(tabs, padding="3 1 6 5")
 leaderboard_tab = ttk.Frame(tabs, padding="3 1 6 5")
+market_tab = ttk.Frame(tabs, padding="3 1 6 5")
 
 tabs.add(login_tab, text="Login")
 tabs.add(summary_tab, text="Summary")
 tabs.add(leaderboard_tab, text="Leaderboard")
+tabs.add(market_tab, text="Market")
 
 tabs.tab(1, state=tk.DISABLED)
 tabs.tab(2, state=tk.DISABLED)
+tabs.tab(3, state=tk.DISABLED)
 
 login.create_registration_login_tab(login_tab, login_trader)
 summary.create_summary_tab(
@@ -86,5 +94,6 @@ summary.create_summary_tab(
     logout_trader,
 )
 leaderboard.create_leaderboard_tab(leaderboard_tab, login.widgets["trader_token"])
+market.create_market_tab(market_tab, login.widgets["trader_token"])
 
 root.mainloop()

@@ -37,6 +37,17 @@ def refresh_leaderboard(*args):
                     text="values",
                     values=(row["rank"], row["username"], f"{row['netWorth']:n}"),
                 )
+            if result["userNetWorth"]["rank"] > 10:
+                widgets["leaderboard_view"].insert(
+                    "",
+                    "end",
+                    text="values",
+                    values=(
+                        result["userNetWorth"]["rank"],
+                        result["userNetWorth"]["username"],
+                        f"{result['userNetWorth']['netWorth']:n}"
+                    )
+                )
 
         else:
             print("Failed:", response.status_code, response.reason, response.text)

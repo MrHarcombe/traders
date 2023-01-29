@@ -56,7 +56,7 @@ def refresh_tabs(event):
         loans.refresh_loans()
     elif selected_index == 5:
         ships.refresh_ships()
-        ships.refresh_shipSummary()
+        ships.refresh_ship_summary()
 
 
 ###

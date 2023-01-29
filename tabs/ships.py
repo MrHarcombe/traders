@@ -5,7 +5,7 @@ import requests
 import util
 import tkinter.messagebox
 
-GETships = "https://api.spacetraders.io/systems/OE/ship-listings"
+GET_SHIPS = "https://api.spacetraders.io/systems/OE/ship-listings"
 MY_SHIPS = "https://api.spacetraders.io/my/ships"
 ACCOUNT = "https://api.spacetraders.io/my/account"
 
@@ -149,7 +149,7 @@ def purchaseMenu(event):
                                 selected = widgets['ShipsTable'].selection()[0]
                                 shipType = widgets['ShipsTable'].item(selected,"values")[5]
                                 print(trader_token.get(),ship['location'],shipType)
-                                if tkinter.messagebox.askyesno(title='Confirm Purchase',message='Do you want to purchase %s for %s credits'%(shipType,int(data[1][1:]))):
+                                if tkinter.messagebox.askyesno(title='Confirm Purchase',message=f'Do you want to purchase {shipType} for {int(data[1][1:])} credits'):
                                     try:
                                         response = requests.get(
                                             MY_SHIPS, params={"token": trader_token.get(),'location':ship['location'],'type':shipType}, **proxy_workaround
@@ -175,7 +175,7 @@ def purchaseMenu(event):
 def refresh_ships():
     try:
         response = requests.get(
-            GETships, params={"token": trader_token.get()}, **proxy_workaround
+            GET_SHIPS, params={"token": trader_token.get()}, **proxy_workaround
         )
         if response.status_code == 200:
             result = response.json()
@@ -230,7 +230,7 @@ def refresh_ships():
 
     
 
-def refresh_shipSummary():
+def refresh_ship_summary():
     response = requests.get(
         MY_SHIPS, params={"token": trader_token.get()}, **proxy_workaround
     )
